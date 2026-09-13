@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "net/http"
+require "zlib"
 
 RSpec.describe DataForSeo::HttpTransport do
   let(:transport) { described_class.new(login: "l", password: "p", open_timeout: 10, read_timeout: 120) }
@@ -34,8 +35,9 @@ RSpec.describe DataForSeo::HttpTransport do
     expect(JSON.parse(sent.body)).to eq([{ "a" => 1 }])
   end
 
-  [Net::ReadTimeout, Net::OpenTimeout, SocketError, Errno::ECONNREFUSED, Errno::ECONNRESET,
-   OpenSSL::SSL::SSLError, EOFError, IOError].each do |klass|
+  [Net::ReadTimeout, Net::OpenTimeout, Net::WriteTimeout, SocketError, Errno::ECONNREFUSED, Errno::ECONNRESET,
+   OpenSSL::SSL::SSLError, EOFError, IOError, Net::ProtocolError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError,
+   Zlib::Error].each do |klass|
     it "turns #{klass} into ConnectionError and keeps the cause" do
       stub_http { raise klass }
 
@@ -66,5 +68,38 @@ RSpec.describe DataForSeo::HttpTransport do
     stub_http(http_response(401, '{"status_code":40100,"status_message":"not authorized"}'))
 
     expect(transport.call("/v3/x", [])).to eq("status_code" => 40100, "status_message" => "not authorized")
+  end
+
+  it "raises TransientError, not a plain body, for HTTP 500 with an unmapped status_code" do
+    stub_http(http_response(500, '{"status_code":50000,"status_message":"server error"}'))
+
+    expect { transport.call("/v3/x", []) }.to raise_error(DataForSeo::TransientError) { |error|
+      expect(error).to have_attributes(http_status: 500, status_code: 50000, status_message: "server error")
+    }
+  end
+
+  it "raises RateLimitError for HTTP 429 with an unlisted status_code" do
+    stub_http(http_response(429, '{"status_code":99999,"status_message":"slow down"}'))
+
+    expect { transport.call("/v3/x", []) }.to raise_error(DataForSeo::RateLimitError) { |error|
+      expect(error.http_status).to eq(429)
+    }
+  end
+
+  it "never treats a non-2xx envelope as success even when its status_code is 20000" do
+    stub_http(http_response(502, '{"status_code":20000,"status_message":"Ok."}'))
+
+    expect { transport.call("/v3/x", []) }.to raise_error(DataForSeo::TransientError) { |error|
+      expect(error.http_status).to eq(502)
+    }
+  end
+
+  it "still lets the client map a listed status_code, e.g. HTTP 401 with 40100" do
+    stub_http(http_response(401, '{"status_code":40100,"status_message":"not authorized"}'))
+    client = DataForSeo::Client.new(login: "l", password: "p", transport:)
+
+    expect { client.post("/v3/x", [{}]) }.to raise_error(DataForSeo::AuthenticationError) { |error|
+      expect(error.status_code).to eq(40100)
+    }
   end
 end

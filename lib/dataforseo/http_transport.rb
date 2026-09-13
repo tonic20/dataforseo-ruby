@@ -3,14 +3,18 @@
 require "json"
 require "net/http"
 require "openssl"
+require "timeout"
+require "zlib"
 
 module DataForSeo
   class HttpTransport
     HOST = "api.dataforseo.com"
 
+    # Timeout::Error covers Net::Open/Read/WriteTimeout; Net::HTTP requests gzip
+    # and doesn't rescue inflate errors itself, hence Zlib::Error.
     NETWORK_ERRORS = [
-      Net::OpenTimeout, Net::ReadTimeout, SocketError, SystemCallError,
-      OpenSSL::SSL::SSLError, IOError, EOFError
+      Timeout::Error, SocketError, SystemCallError, OpenSSL::SSL::SSLError, IOError, EOFError,
+      Net::ProtocolError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError, Zlib::Error
     ].freeze
 
     def initialize(login:, password:, open_timeout:, read_timeout:)
@@ -44,10 +48,17 @@ module DataForSeo
         nil
       end
 
-      return body if body.is_a?(Hash) && (status.between?(200, 299) || body.key?("status_code"))
-      raise ConnectionError, "unparseable body from #{path} (HTTP #{status})" if status.between?(200, 299)
+      if status.between?(200, 299)
+        return body if body.is_a?(Hash)
+        raise ConnectionError, "unparseable body from #{path} (HTTP #{status})"
+      end
 
-      raise DataForSeo.http_error(http_status: status, path:)
+      # A non-2xx with a status_code we classify (e.g. 401/40100) still goes to the
+      # client, so it raises the same class as the same code would on a 2xx.
+      return body if body.is_a?(Hash) && API_ERRORS.key?(body["status_code"])
+
+      raise DataForSeo.http_error(http_status: status, path:, status_code: body&.dig("status_code"),
+                                   status_message: body&.dig("status_message"))
     end
   end
 end
