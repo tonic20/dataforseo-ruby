@@ -14,6 +14,8 @@ response.items  # => [{"keyword" => "reverse image search", "search_volume" => 1
 response.cost   # => 0.09
 ```
 
+`Client.new` also takes `open_timeout:` (10s), `read_timeout:` (120s) and `batch_size:` (1000).
+
 ## Typed methods
 
 | Method | Endpoint | Rows |
@@ -34,7 +36,7 @@ them; nulls stay `nil` and absent targets stay absent.
 
 ## Errors
 
-Every transport, protocol or API failure is a `DataForSEO::Error`:
+Every transport, protocol or API failure is a `DataForSeo::Error`:
 
 - `ConnectionError` — timeouts, DNS, TLS, resets, unparseable bodies
 - `ApiError` (`#status_code`, `#status_message`, `#path`, `#task_id`, `#http_status`)
