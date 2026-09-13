@@ -10,13 +10,14 @@ module DataForSeo
   class ApiError < Error
     attr_reader :status_code, :status_message, :path, :task_id, :http_status
 
-    def initialize(status_code: nil, status_message: nil, path: nil, task_id: nil, http_status: nil)
+    def initialize(message = nil, status_code: nil, status_message: nil, path: nil, task_id: nil, http_status: nil)
       @status_code = status_code
       @status_message = status_message
       @path = path
       @task_id = task_id
       @http_status = http_status
-      super(["DataForSEO", status_code || (http_status && "HTTP #{http_status}"), "on #{path}:", status_message].compact.join(" "))
+      head = ["DataForSEO", status_code || (http_status && "HTTP #{http_status}"), "on #{path}"].compact.join(" ")
+      super(message || (status_message ? "#{head}: #{status_message}" : head))
     end
   end
 
@@ -40,8 +41,8 @@ module DataForSeo
       .new(status_code:, status_message:, path:, task_id:)
   end
 
-  def self.http_error(http_status:, path:)
+  def self.http_error(http_status:, path:, status_code: nil, status_message: nil)
     klass = HTTP_ERRORS.fetch(http_status) { http_status >= 500 ? TransientError : ApiError }
-    klass.new(http_status:, path:, status_message: "HTTP #{http_status}")
+    klass.new(http_status:, path:, status_code:, status_message:)
   end
 end

@@ -42,6 +42,25 @@ RSpec.describe "DataForSeo errors" do
     end
   end
 
+  it "accepts a plain message like a normal Ruby exception" do
+    expect(DataForSeo::RateLimitError.new("msg").message).to eq("msg")
+    expect(DataForSeo::TransientError.new("x")).to be_a(DataForSeo::Error)
+  end
+
+  it "still builds a message from the keywords when none is given" do
+    expect(DataForSeo::ApiError.new(status_code: 40100, path: "/p").message).to include("40100", "/p")
+  end
+
+  it "does not repeat the HTTP status in an HTTP-only error's message" do
+    expect(DataForSeo.http_error(http_status: 401, path: "/p").message).to eq("DataForSEO HTTP 401 on /p")
+  end
+
+  it "keeps a body's status_code and status_message on an HTTP error" do
+    error = DataForSeo.http_error(http_status: 500, path: "/p", status_code: 50000, status_message: "Internal error")
+
+    expect(error).to have_attributes(http_status: 500, status_code: 50000, status_message: "Internal error")
+  end
+
   it "puts every class under DataForSeo::Error" do
     [DataForSeo::ConnectionError, DataForSeo::ApiError, DataForSeo::AuthenticationError,
      DataForSeo::PaymentRequired, DataForSeo::RateLimitError, DataForSeo::TransientError].each do |klass|
