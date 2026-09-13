@@ -1,0 +1,80 @@
+{
+  "version": "0.1.20260902",
+  "status_code": 20000,
+  "status_message": "Ok.",
+  "time": "0.1051 sec.",
+  "cost": 0.01224,
+  "tasks_count": 1,
+  "tasks_error": 0,
+  "tasks": [
+    {
+      "id": "09131121-2000-0391-0000-4642f5d4f4e0",
+      "status_code": 20000,
+      "status_message": "Ok.",
+      "time": "0.0939 sec.",
+      "cost": 0.01224,
+      "result_count": 1,
+      "path": [
+        "v3",
+        "dataforseo_labs",
+        "google",
+        "bulk_traffic_estimation",
+        "live"
+      ],
+      "data": {
+        "api": "dataforseo_labs",
+        "function": "bulk_traffic_estimation",
+        "se_type": "google",
+        "targets": [
+          "futuretools.io",
+          "startupbuffer.com"
+        ],
+        "location_name": "United States",
+        "language_code": "en"
+      },
+      "result": [
+        {
+          "se_type": "google",
+          "location_code": 2840,
+          "language_code": "en",
+          "total_count": 2,
+          "items_count": 2,
+          "items": [
+            {
+              "se_type": "google",
+              "target": "futuretools.io",
+              "metrics": {
+                "organic": {
+                  "etv": 49171.685136739165,
+                  "count": 3962
+                },
+                "paid": {
+                  "etv": 0,
+                  "count": 0
+                },
+                "local_pack": null,
+                "featured_snippet": null
+              }
+            },
+            {
+              "se_type": "google",
+              "target": "startupbuffer.com",
+              "metrics": {
+                "organic": {
+                  "etv": 4043.1247864440084,
+                  "count": 556
+                },
+                "paid": {
+                  "etv": 0,
+                  "count": 0
+                },
+                "local_pack": null,
+                "featured_snippet": null
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

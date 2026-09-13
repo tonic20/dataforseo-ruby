@@ -1,6 +1,16 @@
 # frozen_string_literal: true
 
 module DataForSeo
+  module GoogleAds
+    MAX_KEYWORD_LENGTH = 80
+    MAX_KEYWORD_WORDS = 10
+
+    def self.validate!(keywords)
+      bad = keywords.find { it.length > MAX_KEYWORD_LENGTH || it.split.size > MAX_KEYWORD_WORDS }
+      raise ArgumentError, "keyword exceeds Google Ads limits (80 chars, 10 words): #{bad.inspect}" if bad
+    end
+  end
+
   class Client
     OPEN_TIMEOUT = 10
     # seo's bulk_traffic_estimation took 34.6s for 98 targets; a slice holds 1,000.
@@ -25,6 +35,44 @@ module DataForSeo
       tasks.each { check!(it, path, task_id: it["id"]) }
 
       Response.new(path:, cost: body["cost"], tasks:, items: tasks.flat_map(&extract), requested:)
+    end
+
+    SEARCH_VOLUME_PATH = "/v3/keywords_data/google_ads/search_volume/live"
+    TRAFFIC_PATH = "/v3/dataforseo_labs/google/bulk_traffic_estimation/live"
+    RANKS_PATH = "/v3/backlinks/bulk_ranks/live"
+    SPAM_PATH = "/v3/backlinks/bulk_spam_score/live"
+    SUMMARY_PATH = "/v3/backlinks/summary/live"
+
+    # No location means worldwide. Google Ads Live allows 12 requests/minute per
+    # account; pacing is the caller's.
+    def google_ads_search_volume(keywords:, language_code:, location_code: nil, search_partners: false, &block)
+      GoogleAds.validate!(keywords)
+      sliced(SEARCH_VOLUME_PATH, keywords, RESULT, block) do |slice|
+        { "keywords" => slice, "language_code" => language_code, "location_code" => location_code,
+          "search_partners" => search_partners }.compact
+      end
+    end
+
+    def bulk_traffic_estimation(targets:, location_name:, language_code:, &block)
+      sliced(TRAFFIC_PATH, targets, ITEMS, block) do |slice|
+        { "targets" => slice, "location_name" => location_name, "language_code" => language_code }
+      end
+    end
+
+    # rank_scale has no default on purpose.
+    def bulk_ranks(targets:, rank_scale:, &block)
+      sliced(RANKS_PATH, targets, ITEMS, block) { |slice| { "targets" => slice, "rank_scale" => rank_scale } }
+    end
+
+    # Sends no location/language: the endpoint rejects them (40501). One malformed
+    # target voids the whole slice.
+    def bulk_spam_score(targets:, &block)
+      sliced(SPAM_PATH, targets, ITEMS, block) { |slice| { "targets" => slice } }
+    end
+
+    def backlinks_summary(target:, include_subdomains: true)
+      post(SUMMARY_PATH, [{ "target" => target, "include_subdomains" => include_subdomains }],
+           requested: [target], extract: RESULT)
     end
 
     private

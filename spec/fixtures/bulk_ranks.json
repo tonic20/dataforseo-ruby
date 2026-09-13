@@ -1,0 +1,49 @@
+{
+  "version": "0.1.20260902",
+  "status_code": 20000,
+  "status_message": "Ok.",
+  "time": "0.0331 sec.",
+  "cost": 0.024072,
+  "tasks_count": 1,
+  "tasks_error": 0,
+  "tasks": [
+    {
+      "id": "09131121-2000-0347-0000-66e7922ffd97",
+      "status_code": 20000,
+      "status_message": "Ok.",
+      "time": "0.0061 sec.",
+      "cost": 0.024072,
+      "result_count": 1,
+      "path": [
+        "v3",
+        "backlinks",
+        "bulk_ranks",
+        "live"
+      ],
+      "data": {
+        "api": "backlinks",
+        "function": "bulk_ranks",
+        "targets": [
+          "futuretools.io",
+          "g2.com"
+        ],
+        "rank_scale": "one_thousand"
+      },
+      "result": [
+        {
+          "items_count": 2,
+          "items": [
+            {
+              "target": "futuretools.io",
+              "rank": 339
+            },
+            {
+              "target": "g2.com",
+              "rank": 701
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

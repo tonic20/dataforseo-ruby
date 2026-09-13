@@ -1,0 +1,50 @@
+{
+  "version": "0.1.20260902",
+  "status_code": 20000,
+  "status_message": "Ok.",
+  "time": "2.9069 sec.",
+  "cost": 0.024072,
+  "tasks_count": 1,
+  "tasks_error": 0,
+  "tasks": [
+    {
+      "id": "09131121-2000-0482-0000-d8187c1d5a81",
+      "status_code": 20000,
+      "status_message": "Ok.",
+      "time": "2.8712 sec.",
+      "cost": 0.024072,
+      "result_count": 1,
+      "path": [
+        "v3",
+        "backlinks",
+        "bulk_spam_score",
+        "live"
+      ],
+      "data": {
+        "api": "backlinks",
+        "function": "bulk_spam_score",
+        "targets": [
+          "g2.com",
+          "viberank.dev"
+        ]
+      },
+      "result": [
+        {
+          "items_count": 2,
+          "items": [
+            {
+              "type": "backlinks_bulk_spam_score",
+              "target": "g2.com",
+              "spam_score": 6
+            },
+            {
+              "type": "backlinks_bulk_spam_score",
+              "target": "viberank.dev",
+              "spam_score": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

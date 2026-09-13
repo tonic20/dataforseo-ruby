@@ -1,0 +1,108 @@
+{
+  "version": "0.1.20260902",
+  "status_code": 20000,
+  "status_message": "Ok.",
+  "time": "0.1919 sec.",
+  "cost": 0.024036,
+  "tasks_count": 1,
+  "tasks_error": 0,
+  "tasks": [
+    {
+      "id": "09131121-2000-0265-0000-dc4df0e5cd1f",
+      "status_code": 20000,
+      "status_message": "Ok.",
+      "time": "0.1622 sec.",
+      "cost": 0.024036,
+      "result_count": 1,
+      "path": [
+        "v3",
+        "backlinks",
+        "summary",
+        "live"
+      ],
+      "data": {
+        "api": "backlinks",
+        "function": "summary",
+        "target": "kopylov.net",
+        "include_subdomains": true
+      },
+      "result": [
+        {
+          "target": "kopylov.net",
+          "first_seen": "2022-06-17 06:10:14 +00:00",
+          "lost_date": null,
+          "rank": 111,
+          "backlinks": 96,
+          "backlinks_spam_score": 46,
+          "crawled_pages": 12,
+          "info": {
+            "server": "AmazonS3",
+            "cms": null,
+            "platform_type": [
+              "unknown"
+            ],
+            "ip_address": "18.172.112.66",
+            "country": null,
+            "is_ip": false,
+            "target_spam_score": 2
+          },
+          "internal_links_count": 34,
+          "external_links_count": 28,
+          "broken_backlinks": 0,
+          "broken_pages": 0,
+          "referring_domains": 82,
+          "referring_domains_nofollow": 12,
+          "referring_main_domains": 79,
+          "referring_main_domains_nofollow": 12,
+          "referring_ips": 47,
+          "referring_subnets": 45,
+          "referring_pages": 95,
+          "referring_pages_nofollow": 19,
+          "referring_links_tld": {
+            "com": 55,
+            "app": 7,
+            "ru": 5,
+            "info": 4,
+            "blogspot.com": 3,
+            "org": 3,
+            "shop": 2,
+            "net": 2,
+            "eu": 2,
+            "pages.dev": 1
+          },
+          "referring_links_types": {
+            "anchor": 94,
+            "canonical": 1
+          },
+          "referring_links_attributes": {
+            "noopener": 57,
+            "nofollow": 19,
+            "noreferrer": 5,
+            "external": 1
+          },
+          "referring_links_platform_types": {
+            "blogs": 47,
+            "cms": 44,
+            "unknown": 37,
+            "organization": 29,
+            "news": 1
+          },
+          "referring_links_semantic_locations": {
+            "": 71,
+            "section": 13,
+            "article": 8,
+            "footer": 3
+          },
+          "referring_links_countries": {
+            "": 82,
+            "RU": 5,
+            "US": 4,
+            "DE": 2,
+            "CO": 1,
+            "IN": 1
+          }
+        }
+      ]
+    }
+  ]
+}
