@@ -41,6 +41,14 @@ RSpec.describe DataForSeo::Client do
       .to raise_error(DataForSeo::ApiError)
   end
 
+  it "raises when the response has fewer tasks than were posted, instead of silently returning less" do
+    expect { client(t.ok_body(result: [])).post("/v3/x", [{ "a" => 1 }, { "b" => 2 }]) }
+      .to raise_error(DataForSeo::ApiError) { |error|
+        expect(error.message).to eq("expected 2 task(s), got 1")
+        expect(error.path).to eq("/v3/x")
+      }
+  end
+
   it "raises when the envelope has no status code at all" do
     expect { client({ "tasks" => [] }).post("/v3/x", [{}]) }.to raise_error(DataForSeo::ApiError)
   end

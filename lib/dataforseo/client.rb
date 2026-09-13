@@ -31,10 +31,13 @@ module DataForSeo
     def post(path, tasks, requested: [], extract: RESULT)
       body = @transport.call(path, tasks)
       check!(body, path)
-      tasks = Array(body["tasks"])
-      tasks.each { check!(it, path, task_id: it["id"]) }
+      response_tasks = Array(body["tasks"])
+      if response_tasks.size != tasks.size
+        raise ApiError.new("expected #{tasks.size} task(s), got #{response_tasks.size}", path:)
+      end
+      response_tasks.each { check!(it, path, task_id: it["id"]) }
 
-      Response.new(path:, cost: body["cost"], tasks:, items: tasks.flat_map(&extract), requested:)
+      Response.new(path:, cost: body["cost"], tasks: response_tasks, items: response_tasks.flat_map(&extract), requested:)
     end
 
     SEARCH_VOLUME_PATH = "/v3/keywords_data/google_ads/search_volume/live"
@@ -48,8 +51,9 @@ module DataForSeo
     def google_ads_search_volume(keywords:, language_code:, location_code: nil, search_partners: false, &block)
       GoogleAds.validate!(keywords)
       sliced(SEARCH_VOLUME_PATH, keywords, RESULT, block) do |slice|
-        { "keywords" => slice, "language_code" => language_code, "location_code" => location_code,
-          "search_partners" => search_partners }.compact
+        task = { "keywords" => slice, "language_code" => language_code, "search_partners" => search_partners }
+        task["location_code"] = location_code if location_code
+        task
       end
     end
 

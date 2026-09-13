@@ -18,6 +18,7 @@ RSpec.describe "typed endpoints" do
       expect(response.items).not_to be_empty
       expect(response.items.map { it["keyword"] }).to include("reverse image search")
       expect(response.items.find { it["keyword"] == "reverse image search" }["search_volume"]).to be_a(Integer)
+      expect(response.items.find { it["keyword"] == "zzqx unknown phrase 4471" }).to include("search_volume" => nil)
     end
 
     it "sends worldwide by omitting location entirely" do
@@ -32,6 +33,12 @@ RSpec.describe "typed endpoints" do
                                                                            location_code: 2840)
 
       expect(sent_task["location_code"]).to eq(2840)
+    end
+
+    it "sends a nil language_code as an explicit key, not silently dropped" do
+      client(fixture("google_ads_search_volume")).google_ads_search_volume(keywords: %w[a], language_code: nil)
+
+      expect(sent_task).to include("language_code" => nil)
     end
 
     it "refuses an over-long or over-worded keyword before any request" do
@@ -76,7 +83,7 @@ RSpec.describe "typed endpoints" do
   end
 
   describe "#bulk_spam_score" do
-    it "reads result[].items[], keeps nulls, sends no location" do
+    it "reads result[].items[], sends no location" do
       response = client(fixture("bulk_spam_score")).bulk_spam_score(targets: %w[g2.com viberank.dev])
 
       expect(response.items.map { it["target"] }).to include("g2.com")
