@@ -57,8 +57,8 @@ module DataForSeo
       # client, so it raises the same class as the same code would on a 2xx.
       return body if body.is_a?(Hash) && API_ERRORS.key?(body["status_code"])
 
-      raise DataForSeo.http_error(http_status: status, path:, status_code: body&.dig("status_code"),
-                                   status_message: body&.dig("status_message"))
+      status_code, status_message = body.values_at("status_code", "status_message") if body.is_a?(Hash)
+      raise DataForSeo.http_error(http_status: status, path:, status_code:, status_message:)
     end
   end
 end

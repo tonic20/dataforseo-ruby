@@ -94,6 +94,25 @@ RSpec.describe DataForSeo::HttpTransport do
     }
   end
 
+  # JSON permits top-level scalars/arrays, but only a Hash has status_code to read.
+  ["[]", '"x"', "false", "123", "null"].each do |raw_body|
+    it "raises TransientError for HTTP 502 with a non-object JSON body #{raw_body}" do
+      stub_http(http_response(502, raw_body))
+
+      expect { transport.call("/v3/x", []) }.to raise_error(DataForSeo::TransientError) { |error|
+        expect(error).to have_attributes(http_status: 502, status_code: nil, status_message: nil)
+      }
+    end
+  end
+
+  it "raises AuthenticationError for HTTP 401 with a non-object JSON body" do
+    stub_http(http_response(401, "[]"))
+
+    expect { transport.call("/v3/x", []) }.to raise_error(DataForSeo::AuthenticationError) { |error|
+      expect(error).to have_attributes(http_status: 401, status_code: nil)
+    }
+  end
+
   it "still lets the client map a listed status_code, e.g. HTTP 401 with 40100" do
     stub_http(http_response(401, '{"status_code":40100,"status_message":"not authorized"}'))
     client = DataForSeo::Client.new(login: "l", password: "p", transport:)
