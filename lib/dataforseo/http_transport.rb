@@ -25,9 +25,9 @@ module DataForSeo
     end
 
     def call(path, payload)
-      request = Net::HTTP::Post.new(path, "Content-Type" => "application/json")
+      request = payload.nil? ? Net::HTTP::Get.new(path) : Net::HTTP::Post.new(path, "Content-Type" => "application/json")
       request.basic_auth(@login, @password)
-      request.body = JSON.generate(payload)
+      request.body = JSON.generate(payload) unless payload.nil?
 
       response = Net::HTTP.start(HOST, 443, use_ssl: true,
                                  open_timeout: @open_timeout, read_timeout: @read_timeout) { it.request(request) }

@@ -25,13 +25,15 @@ module DataForSeo
   class PaymentRequired < ApiError; end
   class RateLimitError < ApiError; end
   class TransientError < ApiError; end
+  class TaskNotReady < ApiError; end
 
   # https://docs.dataforseo.com/v3/appendix/errors/
   API_ERRORS = {
     40100 => AuthenticationError,
     40200 => PaymentRequired, 40210 => PaymentRequired,
     40202 => RateLimitError, 40209 => RateLimitError,
-    50301 => TransientError, 50303 => TransientError, 50401 => TransientError
+    50301 => TransientError, 50303 => TransientError, 50401 => TransientError,
+    40601 => TaskNotReady, 40602 => TaskNotReady
   }.freeze
 
   HTTP_ERRORS = { 401 => AuthenticationError, 402 => PaymentRequired, 429 => RateLimitError }.freeze

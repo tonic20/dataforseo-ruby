@@ -27,17 +27,26 @@ module DataForSeo
       @batch_size = batch_size
     end
 
-    # Live endpoints only: a task-based endpoint's 20100 "created" raises here.
-    def post(path, tasks, requested: [], extract: RESULT)
+    # A task_post's 20100 "created" raises unless the caller accepts it.
+    def post(path, tasks, requested: [], extract: RESULT, accept: [OK])
       body = @transport.call(path, tasks)
       check!(body, path)
       response_tasks = Array(body["tasks"])
       if response_tasks.size != tasks.size
         raise ApiError.new("expected #{tasks.size} task(s), got #{response_tasks.size}", path:)
       end
-      response_tasks.each { check!(it, path, task_id: it["id"]) }
+      response_tasks.each { check!(it, path, task_id: it["id"], accept:) }
 
       Response.new(path:, cost: body["cost"], tasks: response_tasks, items: response_tasks.flat_map(&extract), requested:)
+    end
+
+    def get(path, extract: RESULT)
+      body = @transport.call(path, nil)
+      check!(body, path)
+      response_tasks = Array(body["tasks"])
+      response_tasks.each { check!(it, path, task_id: it["id"]) }
+
+      Response.new(path:, cost: body["cost"], tasks: response_tasks, items: response_tasks.flat_map(&extract), requested: [])
     end
 
     SEARCH_VOLUME_PATH = "/v3/keywords_data/google_ads/search_volume/live"
@@ -45,6 +54,10 @@ module DataForSeo
     RANKS_PATH = "/v3/backlinks/bulk_ranks/live"
     SPAM_PATH = "/v3/backlinks/bulk_spam_score/live"
     SUMMARY_PATH = "/v3/backlinks/summary/live"
+    ORGANIC_TASK_POST_PATH = "/v3/serp/google/organic/task_post"
+    ORGANIC_TASK_GET_PATH = "/v3/serp/google/organic/task_get/advanced"
+    TASK_CREATED = 20100
+    TASK_POST_BATCH = 100
 
     # No location means worldwide. Google Ads Live allows 12 requests/minute per
     # account; pacing is the caller's.
@@ -79,10 +92,23 @@ module DataForSeo
            requested: [target], extract: RESULT)
     end
 
+    # Standard queue: results arrive via google_organic_task_get, usually within minutes.
+    def google_organic_task_post(tasks:)
+      responses = tasks.each_slice(TASK_POST_BATCH).map do |slice|
+        post(ORGANIC_TASK_POST_PATH, slice, accept: [OK, TASK_CREATED])
+      end
+      Response.combine(responses, path: ORGANIC_TASK_POST_PATH, requested: [])
+    end
+
+    # Raises TaskNotReady while the task is still queued.
+    def google_organic_task_get(id:)
+      get("#{ORGANIC_TASK_GET_PATH}/#{id}", extract: ITEMS)
+    end
+
     private
 
-    def check!(envelope, path, task_id: nil)
-      return if envelope["status_code"] == OK
+    def check!(envelope, path, task_id: nil, accept: [OK])
+      return if accept.include?(envelope["status_code"])
 
       raise DataForSeo.api_error(status_code: envelope["status_code"], status_message: envelope["status_message"],
                                  path:, task_id:)

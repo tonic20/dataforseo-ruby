@@ -35,6 +35,21 @@ RSpec.describe DataForSeo::HttpTransport do
     expect(JSON.parse(sent.body)).to eq([{ "a" => 1 }])
   end
 
+  it "GETs with basic auth and no body when the payload is nil" do
+    sent = nil
+    allow(Net::HTTP).to receive(:start) do |*_args, **_options, &session|
+      http = double
+      allow(http).to receive(:request) { |request| sent = request; http_response(200, '{"status_code":20000}') }
+      session.call(http)
+    end
+
+    expect(transport.call("/v3/x/abc", nil)).to eq("status_code" => 20000)
+    expect(sent).to be_a(Net::HTTP::Get)
+    expect(sent.path).to eq("/v3/x/abc")
+    expect(sent["Authorization"]).to eq("Basic #{["l:p"].pack("m0")}")
+    expect(sent.body).to be_nil
+  end
+
   [Net::ReadTimeout, Net::OpenTimeout, Net::WriteTimeout, SocketError, Errno::ECONNREFUSED, Errno::ECONNRESET,
    OpenSSL::SSL::SSLError, EOFError, IOError, Net::ProtocolError, Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError,
    Zlib::Error].each do |klass|

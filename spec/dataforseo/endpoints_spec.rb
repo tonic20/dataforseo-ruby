@@ -114,4 +114,47 @@ RSpec.describe "typed endpoints" do
 
     expect(seen).to eq([%w[a.com], %w[b.com]])
   end
+
+  describe "#google_organic_task_post" do
+    def created(n) = { "status_code" => 20000, "status_message" => "Ok.", "cost" => 0.003 * n,
+                       "tasks" => Array.new(n) { |i| { "id" => "t#{i}", "status_code" => 20100,
+                                                       "status_message" => "Task Created.", "data" => { "tag" => i.to_s } } } }
+    def task(i) = { "keyword" => "k#{i}", "language_code" => "en", "location_code" => 2840, "depth" => 50,
+                    "device" => "desktop", "tag" => i.to_s }
+
+    it "posts tasks verbatim in slices of 100 and accepts 20100 Task Created" do
+      tasks = Array.new(101) { task(it) }
+      response = client(created(100), created(1)).google_organic_task_post(tasks:)
+
+      expect(@transport.calls.map(&:first)).to eq(["/v3/serp/google/organic/task_post"] * 2)
+      expect(@transport.calls.map { it.last.size }).to eq([100, 1])
+      expect(@transport.calls.first.last.first).to eq(task(0))
+      expect(response.tasks.size).to eq(101)
+      expect(response.tasks.first).to include("id" => "t0", "data" => { "tag" => "0" })
+    end
+
+    it "still raises on a task-level error" do
+      body = DataForSeo::Testing.error_body(status_code: 40501, on: :task)
+
+      expect { client(body).google_organic_task_post(tasks: [task(0)]) }.to raise_error(DataForSeo::ApiError)
+    end
+  end
+
+  describe "#google_organic_task_get" do
+    it "GETs the advanced result by id and returns its items" do
+      body = DataForSeo::Testing.ok_body(result: [{ "keyword" => "k", "items" => [{ "type" => "organic", "rank_group" => 1 }] }])
+      response = client(body).google_organic_task_get(id: "abc")
+
+      expect(@transport.calls).to eq([["/v3/serp/google/organic/task_get/advanced/abc", nil]])
+      expect(response.items).to eq([{ "type" => "organic", "rank_group" => 1 }])
+    end
+
+    [40601, 40602].each do |code|
+      it "raises TaskNotReady for #{code}" do
+        body = DataForSeo::Testing.error_body(status_code: code, on: :task)
+
+        expect { client(body).google_organic_task_get(id: "abc") }.to raise_error(DataForSeo::TaskNotReady)
+      end
+    end
+  end
 end

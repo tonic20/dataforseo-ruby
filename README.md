@@ -25,6 +25,8 @@ response.cost   # => 0.09
 | `bulk_ranks(targets:, rank_scale:)` | backlinks/bulk_ranks/live | `result[].items[]` |
 | `bulk_spam_score(targets:)` | backlinks/bulk_spam_score/live | `result[].items[]` |
 | `backlinks_summary(target:, include_subdomains: true)` | backlinks/summary/live | `result[]` |
+| `google_organic_task_post(tasks:)` | serp/google/organic/task_post | `tasks[]` (ids) |
+| `google_organic_task_get(id:)` | serp/google/organic/task_get/advanced/{id} | `result[].items[]` |
 
 Array methods send 1,000 inputs per request. Pass a block to receive each slice's
 `Response` (with `#requested` holding only that slice) before the next request is
