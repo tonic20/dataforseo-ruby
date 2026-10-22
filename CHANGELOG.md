@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0 — 2026-10-22
+
+- google_organic_task_post returns task-level rejections in tasks[] instead of raising
+  (accepted tasks are already billed) and yields each batch as it is posted.
+
 ## 0.2.0 — 2026-10-22
 
 - Google organic Standard queue: google_organic_task_post (accepts 20100) and

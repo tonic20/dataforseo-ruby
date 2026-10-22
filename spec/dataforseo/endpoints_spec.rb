@@ -133,10 +133,29 @@ RSpec.describe "typed endpoints" do
       expect(response.tasks.first).to include("id" => "t0", "data" => { "tag" => "0" })
     end
 
-    it "still raises on a task-level error" do
-      body = DataForSeo::Testing.error_body(status_code: 40501, on: :task)
+    it "returns a rejected task beside the created ones instead of raising" do
+      body = created(2)
+      body["tasks"][1] = { "id" => "t1", "status_code" => 40501, "status_message" => "Invalid Field: 'language_code'.",
+                           "data" => { "tag" => "1" } }
 
-      expect { client(body).google_organic_task_post(tasks: [task(0)]) }.to raise_error(DataForSeo::ApiError)
+      response = client(body).google_organic_task_post(tasks: [task(0), task(1)])
+
+      expect(response.tasks.map { it["status_code"] }).to eq([20100, 40501])
+    end
+
+    it "still raises on an envelope-level error" do
+      body = DataForSeo::Testing.error_body(status_code: 40100)
+
+      expect { client(body).google_organic_task_post(tasks: [task(0)]) }.to raise_error(DataForSeo::AuthenticationError)
+    end
+
+    it "yields each batch as it is posted, so a later failure keeps earlier ids" do
+      seen = []
+      c = client(created(100), DataForSeo::Testing.error_body(status_code: 50301))
+
+      expect { c.google_organic_task_post(tasks: Array.new(101) { task(it) }) { seen << it.tasks.size } }
+        .to raise_error(DataForSeo::TransientError)
+      expect(seen).to eq([100])
     end
   end
 
