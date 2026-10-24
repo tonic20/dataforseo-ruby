@@ -1,9 +1,10 @@
 # dataforseo-ruby
 
-Unofficial, dependency-free Ruby client for [DataForSEO](https://dataforseo.com) Live endpoints.
+Unofficial, dependency-free Ruby client for [DataForSEO](https://dataforseo.com) Live endpoints
+and the Google organic Standard queue.
 
 ```ruby
-gem "dataforseo-ruby", github: "tonic20/dataforseo-ruby", tag: "v0.1.0"
+gem "dataforseo-ruby"
 ```
 
 ```ruby
@@ -33,8 +34,8 @@ Array methods send 1,000 inputs per request. Pass a block to receive each slice'
 made, so paid results can be saved as they arrive. Rows come back as the API sent
 them; nulls stay `nil` and absent targets stay absent.
 
-`client.post(path, tasks)` reaches other **Live** endpoints. Task-based endpoints
-(`20100` task created, results by GET) are not supported.
+`client.post(path, tasks)` reaches other **Live** endpoints. Of the task-based
+endpoints (`20100` task created, results by GET) only Google organic is typed.
 
 ## Errors
 
@@ -46,6 +47,7 @@ Every transport, protocol or API failure is a `DataForSeo::Error`:
   - `PaymentRequired` (40200, 40210, HTTP 402)
   - `RateLimitError` (40202, 40209, HTTP 429)
   - `TransientError` (50301, 50303, 50401, HTTP 5xx)
+  - `TaskNotReady` (40601, 40602)
 
 The client does not retry or pace. Know before you call:
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 — 2026-10-24
+
+- First RubyGems release; README installs from RubyGems and lists the organic queue and TaskNotReady.
+
 ## 0.3.0 — 2026-10-22
 
 - google_organic_task_post returns task-level rejections in tasks[] instead of raising
