@@ -71,3 +71,7 @@ transport.calls # => [[path, payload], ...]
 ```
 
 A queued `Exception` instance is raised instead of returned.
+
+## Author
+
+Built by [Anton Kopylov](https://www.kopylov.net). The story behind it: [dataforseo-ruby: A Client That Respects the Bill](https://www.kopylov.net/blog/dataforseo-ruby-a-client-that-respects-the-bill.html).
